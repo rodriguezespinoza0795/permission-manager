@@ -41,19 +41,40 @@
         </thead>
         <tbody id="table">
         </tbody>
-        <tfoot id="pagination">
+        <tfoot>
+            <tr>
+                <td colspan="4">
+                <ul class="pagination" id="pagination">
+                </ul>
+                </td>
+                <td>
+                    <button type="button" id="save" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" style="display:none;">
+                    Guardar Cambios
+                    </button>
+                </td>
+              </tr>
         </tfoot>
     </table>
     <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade show" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Check the modifications</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div id="modal_people" class="modal-body">
-
+                <div class="modal-body">
+                    <table class="table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Shortname</th>
+                            <th scope="col">Lob</th>
+                            <th scope="col">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody id="modal_people">
+                        </tbody>
+                      </table>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

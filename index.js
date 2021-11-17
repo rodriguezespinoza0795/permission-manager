@@ -3,7 +3,7 @@ var cant_page=10;
 var id_position=0;
 var id_employee=0;
 var team = 3;
-var id_editor= 100687;
+var id_editor= 108954;
 var updates = []
 
 const get_lob_list = async () => {
@@ -109,7 +109,7 @@ function render_table(my_team, lob_list) {
                     <button class="CTA_button btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#List${element.id_employee}" aria-expanded="false" aria-controls="collapseExample">
                         Check Permission
                     </button>
-                    <div class="collapse" id="List${element.id_employee}">${Lob_list}</div></td>
+                    <div class="collapse"  name="${element.shortName}" id="List${element.id_employee}">${Lob_list}</div></td>
                 </tr>`
     });  
     document.getElementById("table").innerHTML = table;
@@ -122,10 +122,7 @@ function render_lob_list(lob_list, access_lob) {
     lob_list.forEach(element => {
         let checked = access_lob.includes(element.id_lob)? 'checked':''
         list +=`
-                <li class="list-group-item" style="font-size: .75rem;">
-                <input class="lob_check form-check-input me-1" type="checkbox" value=${element.id_lob} aria-label="..." ${checked}>
-                ${element.lob}
-                </li>   
+                <li class="list-group-item" style="font-size: .75rem;"><input class="lob_check form-check-input me-1" type="checkbox" value=${element.id_lob} aria-label="..." ${checked}>${element.lob}</li>   
                 `
     }); 
     list += '</ul></div>'
@@ -143,27 +140,15 @@ function render_pagination(num) {
 
         list_pagination+=`<li class="page-item ${index_start==num_page?'active':''}"><a class="page-link CTA_footer" value=${index_start}>${index_start}</a></li>`   
     }
-    let footer = `<tr>
-                    <td colspan="4">
-                    <ul class="pagination">
-                    ${list_pagination}
-                    </ul>
-                    </td>
-                    <td>
-                        <button type="button" id="save" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" style="display:none;">
-                        Guardar Cambios
-                        </button>
-                    </td>
-                  </tr>`
     
-    document.getElementById("pagination").innerHTML = footer
+    document.getElementById("pagination").innerHTML = list_pagination
 }
 
 get_lob_list()
 get_employee()
 
 function displayLoading() {
-    let loading = `<div style="position: absolute;left: 40%;top: 20%;">
+    let loading = `<div>
                         <div class="spinner-border" style="width: 10rem; height: 10rem;" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
@@ -187,7 +172,9 @@ function addEvents() {
     const addtoList = (e) => {
         var obj = new Object();
         obj.id_employee = e.currentTarget.parentNode.parentNode.parentNode.parentNode.id.replace("List", "");
+        obj.shortName = e.currentTarget.parentNode.parentNode.parentNode.parentNode.getAttribute("name") ;
         obj.id_lob  = e.target.value;
+        obj.lob  = e.target.parentNode.textContent;
         obj.available = e.target.checked;
         var repeated = 0
         if (updates.length == 0) {
@@ -206,12 +193,7 @@ function addEvents() {
         document.getElementById("save").style.display = 'block'  
         
         document.getElementById("save").addEventListener("click", () => {
-            let modal = ''
-            updates.forEach(element => {
-                modal +=`<div>${element.id_employee} ${element.id_lob} ${element.available}<div>` 
-            });
-
-            document.getElementById("modal_people").innerHTML= modal
+            render_modal()
         })
     }
 
@@ -247,4 +229,18 @@ function addEvents() {
     })
 }
 
+
+function render_modal() {
+    let modal = ''
+    updates.forEach(element => {
+        modal += `
+                <tr>
+                <th scope="row">${element.shortName}</th>
+                <td>${element.lob}</td>
+                <td>${element.available?'<img src="https://img.icons8.com/flat-round/30/000000/checkmark.png"/>':'<img src="https://img.icons8.com/flat-round/30/000000/delete-sign.png"/>'}</td>
+                </tr>
+                `
+    });
+    document.getElementById("modal_people").innerHTML= modal
+}
 
