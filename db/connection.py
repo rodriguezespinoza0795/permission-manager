@@ -17,6 +17,9 @@ def plane_query_text(sql_conn, query_text):
         lista.append(dict(row))
     return lista
 
+def plane_query_text_no_response(sql_conn, query_text):
+    stmt = sql_conn.execute(f"{query_text}")
+
 def db_close(sql_conn):
     connection = sql_conn.raw_connection()
     connection.close()

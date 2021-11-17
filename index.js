@@ -3,7 +3,7 @@ var cant_page=10;
 var id_position=0;
 var id_employee=0;
 var team = 3;
-var id_editor= 108954;
+var id_editor= 111611;
 var updates = []
 
 const get_lob_list = async () => {
@@ -148,11 +148,13 @@ get_lob_list()
 get_employee()
 
 function displayLoading() {
-    let loading = `<div>
-                        <div class="spinner-border" style="width: 10rem; height: 10rem;" role="status">
+    let loading = `<tr>
+                        <td colspan="5" class="text-center align-middle">
+                        <div class="spinner-border text-info" style="width: 10rem; height: 10rem;" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                   </div>`
+                        </td>
+                   </tr>`
     document.getElementById("table").innerHTML = loading
     document.getElementById("pagination").innerHTML = ''
 }
@@ -229,7 +231,6 @@ function addEvents() {
     })
 }
 
-
 function render_modal() {
     let modal = ''
     updates.forEach(element => {
@@ -244,3 +245,14 @@ function render_modal() {
     document.getElementById("modal_people").innerHTML= modal
 }
 
+const send_information = async () => {
+    let data = JSON.stringify(updates)
+    let response = await fetch(`http://127.0.0.1:8000/my_team?option=5&data=${data}`)
+    let insert = await response.json()
+    document.getElementById("save").style.display = 'none'
+    updates=[]
+}
+
+document.getElementById("modal-button").addEventListener("click", () => {
+    send_information()
+})
