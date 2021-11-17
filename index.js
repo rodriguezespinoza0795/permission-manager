@@ -2,17 +2,26 @@ var num_page=1;
 var cant_page=10;
 var id_position=0;
 var id_employee=0;
-var team = 3;
+var team = 0;
 var id_editor= 111611;
 var updates = []
+
+function displayLoading() {
+    let loading = `<tr>
+                        <td colspan="5" class="text-center align-middle">
+                        <div class="spinner-border text-info" style="width: 10rem; height: 10rem;" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        </td>
+                   </tr>`
+    document.getElementById("table").innerHTML = loading
+    document.getElementById("pagination").innerHTML = ''
+}
 
 const get_lob_list = async () => {
     displayLoading()
     let response = await fetch('http://127.0.0.1:8000/my_team?option=2')
     let lob_list = await response.json()
-    if (team == 3) {
-        await with_team()
-    }
     get_my_team(lob_list)
 }
 
@@ -23,76 +32,6 @@ const get_my_team = async (lob_list) => {
     await render_pagination(my_team[0].count)
     await addEvents()
 }
-
-const get_employee = async () => {
-    let response = await fetch('http://127.0.0.1:8000/my_team?option=3')
-    let employees = await response.json()
-    render_employeeList(employees)
-    render_positionList(employees)
-};
-
-const with_team = async () => {
-    let response = await fetch(`http://127.0.0.1:8000/my_team?option=4&id_editor=${id_editor}`)
-    let with_team = await response.json()
-    const switch_status = with_team[0].with_team > 0 ? 'checked' : 'disabled'
-    team= with_team[0].with_team > 0 ? 1 : 3;
-
-    let switches = `<div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="SwitchCheck" ${switch_status}>
-        <label class="form-check-label" for="SwitchCheck">My Team</label>
-    </div>`
-
-    document.getElementById("my_team").innerHTML = switches
-}
-
-const render_employeeList = (employees) => {
-    let employeelist = ''
-    employees.forEach(element => {
-        employeelist += `<option value=${element.id_employee}>${element.shortName}</option>`
-    });
-    document.getElementById("employeelistOptions").innerHTML = employeelist
-
-    document.getElementById("listPeople").addEventListener("change",(e)=>{
-        num_page=1
-        if(e.target.value=='') id_employee=0
-        id_position=0;
-        document.getElementById("positionDataList").value= '';
-        id_employee=e.target.value;
-        get_lob_list()
-    });
-
-}
-
-const render_positionList = (employees) => {
-    let arrayData = []
-    employees.forEach((item)=>{if(!arrayData.includes(`{"position":"${item.position}","id_position":"${item.id_position}"}`))arrayData.push(`{"position":"${item.position}","id_position":"${item.id_position}"}`)})
-    arrayData.sort()
-    arrayData = arrayData.map(item => JSON.parse(item))
-    
-    let positionlist = ''
-    arrayData.forEach(element => {
-        positionlist += `<option data-value=${element.id_position}>${element.position}</option>`
-    });
-    document.getElementById("positionlistOptions").innerHTML = positionlist
-
-    document.getElementById("listPositions").addEventListener("change",(e)=>{
-        num_page=1
-        var target = e.target.value
-        if(target=='')id_position=0
-        id_employee=0;
-        document.getElementById("employeeDataList").value= '';
-        
-        var datalist = document.getElementById('positionlistOptions').childNodes;
-            for (var i = 0; i < datalist.length; i++) {
-                if (datalist[i].value === target) {
-                    id_position = datalist[i].dataset.value;
-                    break;
-                }
-            }
-        get_lob_list()
-    });
-}
-
 
 function render_table(my_team, lob_list) {
     
@@ -142,21 +81,6 @@ function render_pagination(num) {
     }
     
     document.getElementById("pagination").innerHTML = list_pagination
-}
-
-get_lob_list()
-get_employee()
-
-function displayLoading() {
-    let loading = `<tr>
-                        <td colspan="5" class="text-center align-middle">
-                        <div class="spinner-border text-info" style="width: 10rem; height: 10rem;" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        </td>
-                   </tr>`
-    document.getElementById("table").innerHTML = loading
-    document.getElementById("pagination").innerHTML = ''
 }
 
 function addEvents() {
@@ -214,21 +138,6 @@ function addEvents() {
     lob_checks.forEach(boton => {
         boton.addEventListener("click", addtoList);
     });
-
-    document.getElementById("SwitchCheck").addEventListener("click", (e) =>{
-        document.getElementById("positionDataList").value=''
-        id_position=0;
-        document.getElementById("employeeDataList").value=''
-        id_employee=0;
-        if(e.target.checked) {
-            team = 1;
-            get_lob_list()
-        } else {
-            team = 0;
-            get_lob_list()
-        }
-        
-    })
 }
 
 function render_modal() {
@@ -256,3 +165,98 @@ const send_information = async () => {
 document.getElementById("modal-button").addEventListener("click", () => {
     send_information()
 })
+
+get_lob_list()
+
+// LLENADO DE FILTROS.
+
+const with_team = async () => {
+    let response = await fetch(`http://127.0.0.1:8000/my_team?option=4&id_editor=${id_editor}`)
+    let with_team = await response.json()
+    const switch_status = with_team[0].with_team > 0 ? '' : 'disabled'
+    team= with_team[0].with_team > 0 ? 1 : 3;
+
+    let switches = `<div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="SwitchCheck" ${switch_status}>
+        <label class="form-check-label" for="SwitchCheck">My Team</label>
+    </div>`
+
+    document.getElementById("my_team").innerHTML = switches
+}
+
+add_events_filters = () => {
+    document.getElementById("listPeople").addEventListener("change",(e)=>{
+        num_page=1
+        if(e.target.value=='') id_employee=0
+        id_position=0;
+        document.getElementById("positionDataList").value= '';
+        id_employee=e.target.value;
+        get_lob_list()
+    });
+
+    document.getElementById("listPositions").addEventListener("change",(e)=>{
+        num_page=1
+        var target = e.target.value
+        if(target=='')id_position=0
+        id_employee=0;
+        document.getElementById("employeeDataList").value= '';
+        
+        var datalist = document.getElementById('positionlistOptions').childNodes;
+            for (var i = 0; i < datalist.length; i++) {
+                if (datalist[i].value === target) {
+                    id_position = datalist[i].dataset.value;
+                    break;
+                }
+            }
+        get_lob_list()
+    });
+
+    document.getElementById("SwitchCheck").addEventListener("click", (e) =>{
+        document.getElementById("positionDataList").value=''
+        id_position=0;
+        document.getElementById("employeeDataList").value=''
+        id_employee=0;
+        if(e.target.checked) {
+            team = 1;
+            get_lob_list()
+        } else {
+            team = 0;
+            get_lob_list()
+        }
+        
+    })
+}
+
+const render_employeeList = (employees) => {
+    let employeelist = ''
+    employees.forEach(element => {
+        employeelist += `<option value=${element.id_employee}>${element.shortName}</option>`
+    });
+    document.getElementById("employeelistOptions").innerHTML = employeelist
+}
+
+const render_positionList = (employees) => {
+    let arrayData = []
+    employees.forEach((item)=>{if(!arrayData.includes(`{"position":"${item.position}","id_position":"${item.id_position}"}`))arrayData.push(`{"position":"${item.position}","id_position":"${item.id_position}"}`)})
+    arrayData.sort()
+    arrayData = arrayData.map(item => JSON.parse(item))
+    
+    let positionlist = ''
+    arrayData.forEach(element => {
+        positionlist += `<option data-value=${element.id_position}>${element.position}</option>`
+    });
+    document.getElementById("positionlistOptions").innerHTML = positionlist
+}
+
+const get_employee = async () => {
+    let response = await fetch('http://127.0.0.1:8000/my_team?option=3')
+    let employees = await response.json()
+    await render_employeeList(employees)
+    await render_positionList(employees)
+    await with_team()
+    await add_events_filters()
+};
+
+// Llenar Datalist empleado y posiciones.
+get_employee()
+
