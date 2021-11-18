@@ -5,96 +5,9 @@ var id_employee=0;
 var team = 0;
 var id_editor= 111611;
 var updates = []
-
-function displayLoading() {
-    let loading = `<tr>
-                        <td colspan="5" class="text-center align-middle">
-                        <div class="spinner-border text-info" style="width: 10rem; height: 10rem;" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        </td>
-                   </tr>`
-    document.getElementById("table").innerHTML = loading
-    document.getElementById("pagination").innerHTML = ''
-}
-
-const get_lob_list = async () => {
-    displayLoading()
-    let response = await fetch('http://127.0.0.1:8000/my_team?option=2')
-    let lob_list = await response.json()
-    get_my_team(lob_list)
-}
-
-const get_my_team = async (lob_list) => {
-    let response = await fetch(`http://127.0.0.1:8000/my_team?option=1&num_page=${num_page}&cant_page=${cant_page}&id_position=${id_position}&id_employee=${id_employee}&switch_status=${team}&id_editor=${id_editor}`)
-    let my_team = await response.json()
-    await render_table(my_team, lob_list)
-    await render_pagination(my_team[0].count)
-    await addEvents()
-}
-
-function render_table(my_team, lob_list) {
-    
-    let table = ''
-    my_team.forEach(element => { 
-        let access_lob = element.lobs.split(",").map( Number );
-        let Lob_list = render_lob_list(lob_list, access_lob)
-        table +=`<tr>
-                    <th scope="row">${element.id_employee}</th>
-                    <td>${element.shortName}</td>
-                    <td>${element.position}</td>
-                    <td><img src=${element.path_image} alt=${element.shortName} width="30" height="30"></td>
-                    <td>
-                    <button class="CTA_button btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#List${element.id_employee}" aria-expanded="false" aria-controls="collapseExample">
-                        Check Permission
-                    </button>
-                    <div class="collapse"  name="${element.shortName}" id="List${element.id_employee}">${Lob_list}</div></td>
-                </tr>`
-    });  
-    document.getElementById("table").innerHTML = table;
-    
-}
-
-function render_lob_list(lob_list, access_lob) {
-    let list = `<div>
-                <ul class="list-group overflow-auto" style="position: absolute;max-width: 260px; max-height: 160px;" >`
-    lob_list.forEach(element => {
-        let checked = access_lob.includes(element.id_lob)? 'checked':''
-        list +=`
-                <li class="list-group-item" style="font-size: .75rem;"><input class="lob_check form-check-input me-1" type="checkbox" value=${element.id_lob} aria-label="..." ${checked}>${element.lob}</li>   
-                `
-    }); 
-    list += '</ul></div>'
-    return list;
-}
-
-function render_pagination(num) {
-    let pagination = Math.ceil(num/cant_page)
-    let index_start = num_page <= 3 ? 1 : num_page-2
-    let index_end = num_page <= 3 ? 5 : num_page+2
-    index_end = index_end>pagination ? pagination: index_end
-    let list_pagination = ''
-    
-    for (index_start; index_start <= index_end; index_start++) {
-
-        list_pagination+=`<li class="page-item ${index_start==num_page?'active':''}"><a class="page-link CTA_footer" value=${index_start}>${index_start}</a></li>`   
-    }
-    
-    document.getElementById("pagination").innerHTML = list_pagination
-}
+var information = []
 
 function addEvents() {
-    const change_page = (e) => {
-        num_page = parseInt(e.target.attributes[1].value)
-        get_lob_list()
-    }
-    const cerrarLista = (e) => {
-        const nodeList = document.querySelectorAll(".collapse")
-        nodeList.forEach(list => {
-            list.classList.remove("show")
-        })
-    }
-
     const addtoList = (e) => {
         var obj = new Object();
         obj.id_employee = e.currentTarget.parentNode.parentNode.parentNode.parentNode.id.replace("List", "");
@@ -123,17 +36,7 @@ function addEvents() {
         })
     }
 
-    const botones = document.querySelectorAll(".CTA_button");
-    const pagination = document.querySelectorAll(".CTA_footer");
     const lob_checks = document.querySelectorAll(".lob_check");
-    
-    botones.forEach(boton => {
-        boton.addEventListener("click", cerrarLista);
-    });
-
-    pagination.forEach(boton => {
-        boton.addEventListener("click", change_page);
-    });
 
     lob_checks.forEach(boton => {
         boton.addEventListener("click", addtoList);
@@ -154,19 +57,123 @@ function render_modal() {
     document.getElementById("modal_people").innerHTML= modal
 }
 
-const send_information = async () => {
-    let data = JSON.stringify(updates)
-    let response = await fetch(`http://127.0.0.1:8000/my_team?option=5&data=${data}`)
-    let insert = await response.json()
-    document.getElementById("save").style.display = 'none'
-    updates=[]
+
+// Checkbox acceso LOB's
+
+const get_lob_list = async () => {
+    let response = await fetch('http://127.0.0.1:8000/my_team?option=2')
+    let lob_list = await response.json()
+    await render_lob_list(lob_list)
+    await addEvents()
 }
 
-document.getElementById("modal-button").addEventListener("click", () => {
-    send_information()
-})
+function render_lob_list(lob_list) {
 
-get_lob_list()
+    information.forEach(element => {
+        let access_lob = element.lobs.split(",").map( Number );
+        var list = `<div><ul class="list-group overflow-auto" style="position: absolute;max-width: 260px; max-height: 160px;" >`
+        lob_list.forEach(element => {
+            let checked = access_lob.includes(element.id_lob)? 'checked':''
+            list +=`<li class="list-group-item" style="font-size: .75rem;"><input class="lob_check form-check-input me-1" type="checkbox" value=${element.id_lob} aria-label="..."${checked}>${element.lob}</li>`
+        }); 
+        list += '</ul></div>'
+        document.getElementById(`List${element.id_employee}`).innerHTML = list
+        document.getElementById(`Loading${element.id_employee}`).style.display = 'none'
+        document.getElementById(`Button${element.id_employee}`).style.display = 'block'
+    });
+}
+
+// Tabla Principal y pagination
+
+function addTableEvents() {
+    const change_page = (e) => {
+        num_page = parseInt(e.target.attributes[1].value)
+        get_my_team()
+    }
+    const cerrarLista = (e) => {
+        const nodeList = document.querySelectorAll(".collapse")
+        nodeList.forEach(list => {
+            list.classList.remove("show")
+        })
+    }
+    const botones = document.querySelectorAll(".CTA_button");
+    const pagination = document.querySelectorAll(".CTA_footer");
+    botones.forEach(boton => {
+        boton.addEventListener("click", cerrarLista);
+    });
+
+    document.getElementById("body").addEventListener("click", (e) => {
+        if (!['LI', 'INPUT'].includes(e.target.tagName)) {
+            cerrarLista()
+        }
+    })
+
+    pagination.forEach(boton => {
+        boton.addEventListener("click", change_page);
+    });
+}
+
+function render_pagination(num) {
+    let pagination = Math.ceil(num/cant_page)
+    let index_start = num_page <= 3 ? 1 : num_page-2
+    let index_end = num_page <= 3 ? 5 : num_page+2
+    index_end = index_end>pagination ? pagination: index_end
+    let list_pagination = ''
+    
+    for (index_start; index_start <= index_end; index_start++) {
+
+        list_pagination+=`<li class="page-item ${index_start==num_page?'active':''}"><a class="page-link CTA_footer" value=${index_start}>${index_start}</a></li>`   
+    }
+    
+    document.getElementById("pagination").innerHTML = list_pagination
+}
+
+function render_table(my_team) {
+    let table = ''
+    my_team.forEach(element => { 
+        table +=`<tr>
+                    <th scope="row">${element.id_employee}</th>
+                    <td>${element.shortName}</td>
+                    <td>${element.position}</td>
+                    <td><img src=${element.path_image} alt=${element.shortName} width="30" height="30"></td>
+                    <td>
+                    <button class="btn btn-primary" type="button" disabled id="Loading${element.id_employee}">
+                    <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                    Loading...
+                    </button>
+                    <button class="CTA_button btn btn-outline-primary" id="Button${element.id_employee}" type="button" data-bs-toggle="collapse" data-bs-target="#List${element.id_employee}" aria-expanded="false" aria-controls="collapseExample" style="display:none;">
+                         Check Permission
+                    </button>
+                    <div class="collapse"  name="${element.shortName}" id="List${element.id_employee}"></div></td>
+                </tr>`
+    });  
+    document.getElementById("table").innerHTML = table;
+}
+
+function displayLoading() {
+    let loading = `<tr>
+                        <td colspan="5" class="text-center align-middle">
+                        <div class="spinner-border text-info" style="width: 10rem; height: 10rem;" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        </td>
+                   </tr>`
+    document.getElementById("table").innerHTML = loading
+    document.getElementById("pagination").innerHTML = ''
+}
+
+const get_my_team = async () => {
+    displayLoading()
+    let response = await fetch(`http://127.0.0.1:8000/my_team?option=1&num_page=${num_page}&cant_page=${cant_page}&id_position=${id_position}&id_employee=${id_employee}&switch_status=${team}&id_editor=${id_editor}`)
+    information = await response.json()
+    await render_table(information)
+    await render_pagination(information[0].count)
+    await addTableEvents()
+    await get_lob_list()
+}
+
+// Render tabla principal
+get_my_team()
 
 // LLENADO DE FILTROS.
 
@@ -174,7 +181,6 @@ const with_team = async () => {
     let response = await fetch(`http://127.0.0.1:8000/my_team?option=4&id_editor=${id_editor}`)
     let with_team = await response.json()
     const switch_status = with_team[0].with_team > 0 ? '' : 'disabled'
-    team= with_team[0].with_team > 0 ? 1 : 3;
 
     let switches = `<div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="SwitchCheck" ${switch_status}>
@@ -189,9 +195,11 @@ add_events_filters = () => {
         num_page=1
         if(e.target.value=='') id_employee=0
         id_position=0;
+        team = 0;
+        document.getElementById("SwitchCheck").checked = false
         document.getElementById("positionDataList").value= '';
         id_employee=e.target.value;
-        get_lob_list()
+        get_my_team()
     });
 
     document.getElementById("listPositions").addEventListener("change",(e)=>{
@@ -199,6 +207,8 @@ add_events_filters = () => {
         var target = e.target.value
         if(target=='')id_position=0
         id_employee=0;
+        team = 0;
+        document.getElementById("SwitchCheck").checked = false
         document.getElementById("employeeDataList").value= '';
         
         var datalist = document.getElementById('positionlistOptions').childNodes;
@@ -208,7 +218,7 @@ add_events_filters = () => {
                     break;
                 }
             }
-        get_lob_list()
+        get_my_team()
     });
 
     document.getElementById("SwitchCheck").addEventListener("click", (e) =>{
@@ -216,12 +226,13 @@ add_events_filters = () => {
         id_position=0;
         document.getElementById("employeeDataList").value=''
         id_employee=0;
+        num_page=1
         if(e.target.checked) {
             team = 1;
-            get_lob_list()
+            get_my_team()
         } else {
             team = 0;
-            get_lob_list()
+            get_my_team()
         }
         
     })
@@ -259,4 +270,25 @@ const get_employee = async () => {
 
 // Llenar Datalist empleado y posiciones.
 get_employee()
+
+// Envio a a base de datos (insertar o eliminar)
+const send_information = async () => {
+    let data = JSON.stringify(updates)
+    let response = await fetch(`http://127.0.0.1:8000/my_team?option=5&data=${data}`)
+    let insert = await response.json()
+    document.getElementById("save").style.display = 'none'
+    updates=[]
+}
+
+const showAlert = () => {
+    document.getElementById("alert_complete").style.display = "flex"
+    setTimeout(() => {
+        document.getElementById("alert_complete").setAttribute('style', 'display: none !important;')
+    }, 2000);
+}
+
+document.getElementById("modal-button").addEventListener("click", () => {
+    send_information()
+    showAlert()
+})
 

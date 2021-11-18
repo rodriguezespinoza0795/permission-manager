@@ -39,7 +39,7 @@ def home(
                 sql.plane_query_text_no_response(bbox, f"delete from e_employee_lob where id_employee={i['id_employee']} and id_lob={i['id_lob']};")     
         return {'status':'Done'}
     else :
-        query = f"call agent_search_permissions({option},'{num_page}|-|{cant_page}|-|{id_position}|-|{id_employee}|-|{switch_status}|-|{data}',{id_editor});"
+        query = f"call agent_search_permissions({option},'{num_page}|-|{cant_page}|-|{id_position}|-|{id_employee}|-|{switch_status}',{id_editor});"
         print(query)
         results = sql.plane_query_text(bbox, query)
 
